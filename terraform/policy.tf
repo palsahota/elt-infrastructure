@@ -83,8 +83,7 @@ resource "aws_iam_role" "eks_cluster_role" {
           "Principal": {
               "AWS": [
               "${aws_iam_role.codebuildservicerole.arn}",
-              "arn:aws:iam::889146076393:role/jenkins_role",
-              "arn:aws:iam::889146076393:root"
+              "arn:aws:iam::${var.account_no}:root"
               ]
             },
           "Action": "sts:AssumeRole"
@@ -408,7 +407,7 @@ resource "aws_iam_role" "codebuildservicerole" {
     {
           "Effect": "Allow",
           "Principal": {
-              "AWS": "arn:aws:iam::889146076393:root"
+              "AWS": "arn:aws:iam::${var.account_no}:root"
             },
           "Action": "sts:AssumeRole"
       }
@@ -504,7 +503,7 @@ resource "aws_iam_role" "mwaa_role" {
   force_detach_policies = true
 
   assume_role_policy = <<POLICY
-  {
+{
   "Version": "2012-10-17",
   "Statement": [
     {
@@ -531,7 +530,7 @@ resource "aws_iam_policy" "mwaa_policy" {
         {
             "Effect": "Allow",
             "Action": "airflow:PublishMetrics",
-            "Resource": "arn:aws:airflow:us-west-2:889146076393:environment/*"
+            "Resource": "arn:aws:airflow:${var.region}:${var.account_no}:environment/*"
         },
         {
             "Effect": "Allow",
@@ -541,8 +540,10 @@ resource "aws_iam_policy" "mwaa_policy" {
                 "s3:List*"
             ],
             "Resource": [
-                "arn:aws:s3:::s3-*",
-                "arn:aws:s3:::s3-*/*"
+                "arn:aws:s3:::${var.pipeline_artifact_bucket}*",
+                "arn:aws:s3:::${var.pipeline_artifact_bucket}*/*",
+                "arn:aws:s3:::${var.mwaa_bucket}*",
+                "arn:aws:s3:::${var.mwaa_bucket}*/*"
             ]
         },
         {
@@ -557,7 +558,7 @@ resource "aws_iam_policy" "mwaa_policy" {
                 "logs:GetQueryResults"
             ],
             "Resource": [
-                "arn:aws:logs:us-west-2:889146076393:log-group:*"
+                "arn:aws:logs:${var.region}:${var.account_no}:log-group:*"
             ]
         },
         {
@@ -584,7 +585,7 @@ resource "aws_iam_policy" "mwaa_policy" {
                 "sqs:ReceiveMessage",
                 "sqs:SendMessage"
             ],
-            "Resource": "arn:aws:sqs:us-west-2:*:airflow-celery-*"
+            "Resource": "arn:aws:sqs:${var.region}:*:airflow-celery-*"
         },
         {
             "Effect": "Allow",
@@ -594,11 +595,11 @@ resource "aws_iam_policy" "mwaa_policy" {
                 "kms:GenerateDataKey*",
                 "kms:Encrypt"
             ],
-            "NotResource": "arn:aws:kms:*:889146076393:key/*",
+            "NotResource": "arn:aws:kms:*:${var.account_no}:key/*",
             "Condition": {
                 "StringLike": {
                     "kms:ViaService": [
-                        "sqs.us-west-2.amazonaws.com"
+                        "sqs.${var.region}.amazonaws.com"
                     ]
                 }
             }
@@ -608,12 +609,12 @@ resource "aws_iam_policy" "mwaa_policy" {
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "AmazonMWAAServiceRolePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonMWAAServiceRolePolicy"
-  role       = aws_iam_role.mwaa_role.name
-}
+# resource "aws_iam_role_policy_attachment" "AmazonMWAAServiceRolePolicy" {
+#   policy_arn = "arn:aws:iam::aws:policy/AmazonMWAAServiceRolePolicy"
+#   role       = aws_iam_role.mwaa_role.name
+# }
 
 resource "aws_iam_role_policy_attachment" "mwaa_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/mwaa_policy"
+  policy_arn = aws_iam_policy.mwaa_policy.arn
   role       = aws_iam_role.mwaa_role.name
 }
