@@ -503,7 +503,7 @@ resource "aws_iam_role" "mwaa_role" {
   force_detach_policies = true
 
   assume_role_policy = <<POLICY
-  {
+{
   "Version": "2012-10-17",
   "Statement": [
     {
@@ -540,8 +540,9 @@ resource "aws_iam_policy" "mwaa_policy" {
                 "s3:List*"
             ],
             "Resource": [
-                "arn:aws:s3:::s3-*",
-                "arn:aws:s3:::s3-*/*"
+                "arn:aws:s3:::${var.pipeline_artifact_bucket}*",
+                "arn:aws:s3:::${var.pipeline_artifact_bucket}*/dags/*",
+                "arn:aws:s3:::${var.pipeline_artifact_bucket}*/*"
             ]
         },
         {
@@ -613,6 +614,6 @@ resource "aws_iam_role_policy_attachment" "AmazonMWAAServiceRolePolicy" {
 }
 
 resource "aws_iam_role_policy_attachment" "mwaa_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/mwaa_policy"
+  policy_arn = "arn:aws:iam::${var.account_no}:policy/mwaa_policy"
   role       = aws_iam_role.mwaa_role.name
 }
