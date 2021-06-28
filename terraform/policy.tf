@@ -541,8 +541,9 @@ resource "aws_iam_policy" "mwaa_policy" {
             ],
             "Resource": [
                 "arn:aws:s3:::${var.pipeline_artifact_bucket}*",
-                "arn:aws:s3:::${var.pipeline_artifact_bucket}*/dags/*",
-                "arn:aws:s3:::${var.pipeline_artifact_bucket}*/*"
+                "arn:aws:s3:::${var.pipeline_artifact_bucket}*/*",
+                "arn:aws:s3:::${var.mwaa_bucket}*",
+                "arn:aws:s3:::${var.mwaa_bucket}*/*"
             ]
         },
         {
@@ -608,12 +609,12 @@ resource "aws_iam_policy" "mwaa_policy" {
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "AmazonMWAAServiceRolePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonMWAAServiceRolePolicy"
-  role       = aws_iam_role.mwaa_role.name
-}
+# resource "aws_iam_role_policy_attachment" "AmazonMWAAServiceRolePolicy" {
+#   policy_arn = "arn:aws:iam::aws:policy/AmazonMWAAServiceRolePolicy"
+#   role       = aws_iam_role.mwaa_role.name
+# }
 
 resource "aws_iam_role_policy_attachment" "mwaa_policy" {
-  policy_arn = "arn:aws:iam::${var.account_no}:policy/mwaa_policy"
+  policy_arn = aws_iam_policy.mwaa_policy.arn
   role       = aws_iam_role.mwaa_role.name
 }
