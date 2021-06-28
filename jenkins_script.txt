@@ -1,0 +1,31 @@
+def getTimeStamp(){
+    return sh (script: "date +'%Y%m%d%H%M%S%N' | sed 's/[0-9][0-9][0-9][0-9][0-9][0-9]\$//g'", returnStdout: true);
+}
+node('master'){
+    
+    stage('Init'){
+        script{
+        env.TIMESTAMP = getTimeStamp();
+        
+        }
+    }
+    
+    stage('Clone sources') {
+        checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[credentialsId: '62ea9ad7-1087-47d6-b749-1fd4f9a28255', url: 'https://vgoel88@bitbucket.org/vgoel88/test-cicd.git']]])
+    }
+
+    stage('projectBuild') {
+        sh '''docker build --tag $ecr_repo:$BUILD_NUMBER .'''
+    }
+    
+    stage('PushImagetoECR') {
+        sh ' aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $account_no.dkr.ecr.$aws_region.amazonaws.com '
+        sh '''docker push $ecr_repo:$BUILD_NUMBER'''
+    }
+    
+    stage('DeploytoEKS') {
+        sh ' aws eks update-kubeconfig --name $eks_cluster --region $aws_region --role-arn $jenkins_role '
+        sh ' kubectl config set-context --current --namespace=$namespace '
+        sh 'kubectl apply -f kube-manifests/ --namespace=$namespace'
+    }
+}

@@ -83,8 +83,8 @@ resource "aws_iam_role" "eks_cluster_role" {
           "Principal": {
               "AWS": [
               "${aws_iam_role.codebuildservicerole.arn}",
-              "arn:aws:iam::889146076393:role/jenkins_role",
-              "arn:aws:iam::889146076393:root"
+              ${aws_iam_role.jenkinsrole.arn}",
+              "arn:aws:iam::${var.account_no}:root"
               ]
             },
           "Action": "sts:AssumeRole"
@@ -408,7 +408,7 @@ resource "aws_iam_role" "codebuildservicerole" {
     {
           "Effect": "Allow",
           "Principal": {
-              "AWS": "arn:aws:iam::889146076393:root"
+              "AWS": "arn:aws:iam::${var.account_no}:root"
             },
           "Action": "sts:AssumeRole"
       }
@@ -531,7 +531,7 @@ resource "aws_iam_policy" "mwaa_policy" {
         {
             "Effect": "Allow",
             "Action": "airflow:PublishMetrics",
-            "Resource": "arn:aws:airflow:us-west-2:889146076393:environment/*"
+            "Resource": "arn:aws:airflow:${var.region}:${var.account_no}:environment/*"
         },
         {
             "Effect": "Allow",
@@ -557,7 +557,7 @@ resource "aws_iam_policy" "mwaa_policy" {
                 "logs:GetQueryResults"
             ],
             "Resource": [
-                "arn:aws:logs:us-west-2:889146076393:log-group:*"
+                "arn:aws:logs:${var.region}:${var.account_no}:log-group:*"
             ]
         },
         {
@@ -594,7 +594,7 @@ resource "aws_iam_policy" "mwaa_policy" {
                 "kms:GenerateDataKey*",
                 "kms:Encrypt"
             ],
-            "NotResource": "arn:aws:kms:*:889146076393:key/*",
+            "NotResource": "arn:aws:kms:*:${var.account_no}:key/*",
             "Condition": {
                 "StringLike": {
                     "kms:ViaService": [
@@ -616,4 +616,96 @@ resource "aws_iam_role_policy_attachment" "AmazonMWAAServiceRolePolicy" {
 resource "aws_iam_role_policy_attachment" "mwaa_policy" {
   policy_arn = "arn:aws:iam::aws:policy/mwaa_policy"
   role       = aws_iam_role.mwaa_role.name
+}
+
+#Role for Jenkins
+
+resource "aws_iam_role" "jenkinsrole" {
+  name                  = "jenkinsrole"
+  force_detach_policies = true
+
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": [
+          "eks.amazonaws.com",
+          "ec2.amazonaws.com",
+          "eks-fargate-pods.amazonaws.com"
+        ]
+      },
+      "Action": "sts:AssumeRole"
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::${var.account_no}:root",
+          "${aws_iam_role.fargate_pod_execution_role.arn}"
+        ]
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy_jenkins" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  role       = aws_iam_role.jenkinsrole.name
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy_jenkins" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
+  role       = aws_iam_role.jenkinsrole.name
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy_jenkins" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = aws_iam_role.jenkinsrole.name
+}
+
+
+resource "aws_iam_policy" "jenkins-access" {
+  name   = "jenkins-access"
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:PutImage",
+                "ecr:InitiateLayerUpload",
+                "ecr:UploadLayerPart",
+                "ecr:CompleteLayerUpload",
+                "ecr:GetAuthorizationToken"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Action": "eks:*",
+            "Resource": "*",
+            "Effect": "Allow"
+        },
+        {
+            "Action": "sts:AssumeRole",
+            "Resource": "*",
+            "Effect": "Allow"
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "jenkins-access" {
+  policy_arn = aws_iam_policy.jenkins-access.arn
+  role       = aws_iam_role.jenkinsrole.name
 }
