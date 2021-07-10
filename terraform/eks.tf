@@ -6,7 +6,7 @@ resource "aws_eks_cluster" "main" {
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
   vpc_config {
-    subnet_ids = [data.aws_subnet.private_subnet.id, data.aws_subnet.private_subnet1.id]
+    subnet_ids = [data.aws_subnet.private_subnet1.id, data.aws_subnet.private_subnet2.id]
     endpoint_private_access = true
   }
 
@@ -27,7 +27,7 @@ resource "aws_eks_fargate_profile" "main" {
   cluster_name           = aws_eks_cluster.main.name
   fargate_profile_name   = "fp-default"
   pod_execution_role_arn = aws_iam_role.fargate_pod_execution_role.arn
-  subnet_ids             = [data.aws_subnet.private_subnet.id, data.aws_subnet.private_subnet1.id]
+  subnet_ids             = [data.aws_subnet.private_subnet1.id, data.aws_subnet.private_subnet2.id]
 
   selector {
     namespace = "default"
@@ -42,7 +42,7 @@ resource "aws_eks_node_group" "main" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "test-eks"
   node_role_arn   = aws_iam_role.eks_cluster_role.arn
-  subnet_ids      = [data.aws_subnet.private_subnet.id, data.aws_subnet.private_subnet1.id]
+  subnet_ids      = [data.aws_subnet.private_subnet1.id, data.aws_subnet.private_subnet2.id]
   instance_types = ["t3.xlarge"]
   disk_size = "80"
 

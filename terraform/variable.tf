@@ -32,3 +32,15 @@ variable "pipeline_artifact_bucket" {}
 variable "mwaa_bucket" {}
 
 variable "ec2_ssh_key" {}
+
+variable "main_vpc" {
+}
+
+variable "private_subnet1" {
+}
+
+variable "private_subnet2" {
+}
+
+variable "private_subnet3" {
+}

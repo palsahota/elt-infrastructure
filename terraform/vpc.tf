@@ -1,60 +1,41 @@
-#Importing the VPC details
+# Brian Moore, Monetize Solutions, 2021
+# References to the public and private subnets in the vpc
 data "aws_vpc" "main" {
   filter {
     name   = "tag:Name"
-    #values = ["bidatalake-develop-VpcStack-18Q7AC13YHHQU-vpc"]
-    values = ["default-vpc"]
+    values = [var.main_vpc]
   }
 }
 
-#Importing the Private Subnet details in us-west-2c
-data "aws_subnet" "private_subnet" {
+data "aws_subnet" "private_subnet1" {
   vpc_id = data.aws_vpc.main.id
 
   filter {
-    name   = "tag:Network"
-    values = ["Private"]
+    name   = "tag:Name"
+    values = [var.private_subnet1]
   }
 
-  #availability_zone = "${var.region}a"
-  availability_zone = "${var.region}c"
-}
-
-#Importing the Private Subnet details in us-west-2d
-data "aws_subnet" "private_subnet1" {
-  vpc_id = "${data.aws_vpc.main.id}"
-
-  filter {
-    name   = "tag:Network"
-    values = ["Private"]
-  }
-
-  #availability_zone = "${var.region}b"
-  availability_zone = "${var.region}d"
-}
-
-#Importing the Private Subnet details in us-west-2a
-data "aws_subnet" "public_subnet" {
-  vpc_id = "${data.aws_vpc.main.id}"
-
-  filter {
-    name   = "tag:Network"
-    values = ["Public"]
-  }
-
-  #availability_zone = "${var.region}b"
   availability_zone = "${var.region}a"
 }
 
-#Importing the Private Subnet details in us-west-2b
-data "aws_subnet" "public_subnet1" {
+data "aws_subnet" "private_subnet2" {
   vpc_id = "${data.aws_vpc.main.id}"
 
   filter {
-    name   = "tag:Network"
-    values = ["Public"]
+    name   = "tag:Name"
+    values = [var.private_subnet2]
   }
 
-  #availability_zone = "${var.region}b"
   availability_zone = "${var.region}b"
+}
+
+data "aws_subnet" "private_subnet3" {
+  vpc_id = "${data.aws_vpc.main.id}"
+
+  filter {
+    name   = "tag:Name"
+    values = [var.private_subnet3]
+  }
+
+  availability_zone = "${var.region}c"
 }

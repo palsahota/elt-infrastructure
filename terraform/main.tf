@@ -2,17 +2,17 @@ provider "aws" {
   region = "us-west-2"
   #access_key = "my-access-key"
   #secret_key = "my-secret-key"
-  profile = "target"
+  profile = "default"
 }
 
 terraform {
   backend "s3" {
     bucket = "s3-eks-cicd"
-    key = "datalake/dev/terraform.tfstate"
+    key = "devops-eks-cicd/dev/terraform.tfstate"
     region = "us-west-2"
     dynamodb_table = "eks-cicd-terraform-state-locks"
     encrypt = true
-    profile = "target"
+    profile = "default"
   }
 }
 
