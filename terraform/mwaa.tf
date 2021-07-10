@@ -1,4 +1,4 @@
-resource "aws_mwaa_environment" "test_mwaa" {
+/*resource "aws_mwaa_environment" "test_mwaa" {
   dag_s3_path        = "dags/"
   execution_role_arn = aws_iam_role.mwaa_role.arn
   name               = "test_mwaa"
@@ -9,4 +9,4 @@ resource "aws_mwaa_environment" "test_mwaa" {
   }
 
   source_bucket_arn = aws_s3_bucket.mwaa_bucket.arn
-}
+}*/

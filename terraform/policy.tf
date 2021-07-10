@@ -73,7 +73,8 @@ resource "aws_iam_role" "eks_cluster_role" {
         "Service": [
           "eks.amazonaws.com",
           "eks-fargate-pods.amazonaws.com",
-          "codebuild.amazonaws.com"
+          "codebuild.amazonaws.com",
+          "ec2.amazonaws.com"
           ]
       },
       "Action": "sts:AssumeRole"
@@ -82,8 +83,7 @@ resource "aws_iam_role" "eks_cluster_role" {
           "Effect": "Allow",
           "Principal": {
               "AWS": [
-              "${aws_iam_role.codebuildservicerole.arn}",
-              ${aws_iam_role.jenkinsrole.arn}",
+              "${aws_iam_role.jenkinsrole.arn}",
               "arn:aws:iam::${var.account_no}:root"
               ]
             },
@@ -98,6 +98,22 @@ POLICY
   policy_arn = "arn:aws:iam::aws:policy/eks_cluster_assume_role_policy"
   role       = aws_iam_role.eks_cluster_role.name
 }*/
+
+resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = aws_iam_role.eks_cluster_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonEKS_CNI_Policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = aws_iam_role.eks_cluster_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  role       = aws_iam_role.eks_cluster_role.name
+}
+
 
 resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
@@ -306,7 +322,7 @@ resource "aws_iam_role_policy_attachment" "ALBIngressControllerIAMPolicy" {
 
 
 #Role for Codepipleine
-
+/*
 resource "aws_iam_role" "codepipelineservicerole" {
   name                  = "${var.name}-eks-codepipelineservicerole"
   force_detach_policies = true
@@ -497,9 +513,9 @@ resource "aws_iam_role_policy_attachment" "CodebuilIAMPolicy" {
   policy_arn = aws_iam_policy.codebuildaccess.arn
   role       = aws_iam_role.codebuildservicerole.name
 }
-
+*/
 #Role for MWAA
-resource "aws_iam_role" "mwaa_role" {
+/*resource "aws_iam_role" "mwaa_role" {
   name                  = "${var.name}-mwaa-role"
   force_detach_policies = true
 
@@ -542,7 +558,7 @@ resource "aws_iam_policy" "mwaa_policy" {
             ],
             "Resource": [
                 "arn:aws:s3:::s3-*",
-                "arn:aws:s3:::s3-*/*"
+                "arn:aws:s3:::s3-* /*"
             ]
         },
         {
@@ -617,6 +633,7 @@ resource "aws_iam_role_policy_attachment" "mwaa_policy" {
   policy_arn = "arn:aws:iam::aws:policy/mwaa_policy"
   role       = aws_iam_role.mwaa_role.name
 }
+*/
 
 #Role for Jenkins
 
@@ -692,6 +709,11 @@ resource "aws_iam_policy" "jenkins-access" {
         },
         {
             "Action": "eks:*",
+            "Resource": "*",
+            "Effect": "Allow"
+        },
+        {
+            "Action": "iam:SimulatePrincipalPolicy",
             "Resource": "*",
             "Effect": "Allow"
         },

@@ -30,3 +30,5 @@ variable "CodeBuildDockerImage" {}
 variable "pipeline_artifact_bucket" {}
 
 variable "mwaa_bucket" {}
+
+variable "ec2_ssh_key" {}

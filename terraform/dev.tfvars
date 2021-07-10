@@ -24,6 +24,7 @@ pipeline_artifact_bucket = "s3-codebuild-bucket"
 
 mwaa_bucket = "s3-mwaa-bucket"
 
+ec2_ssh_key = "vineet_test"
 
 default_tags = {
     Brand                = "Monetize"

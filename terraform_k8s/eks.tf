@@ -7,6 +7,16 @@ resource "kubernetes_namespace" "fargate" {
   }
 }
 
+resource "kubernetes_namespace" "airflow" {
+  metadata {
+    labels = {
+      node = "master"
+      app = "airflow"
+    }
+    name = "airflow"
+  }
+}
+
 resource "kubernetes_service_account" "test_service" {
   metadata {
     name = "service-account"
@@ -27,4 +37,16 @@ resource "kubernetes_secret" "test_secret" {
   }
 
   type = "kubernetes.io/basic-auth"
+}
+
+
+resource "helm_release" "airflow" {
+  name       = "airflow"
+  repository = "https://airflow-helm.github.io/charts"
+  chart      = "airflow"
+  namespace  = "airflow"
+  values = [
+    file("airflow.yaml")
+  ]
+
 }
